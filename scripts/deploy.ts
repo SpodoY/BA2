@@ -9,7 +9,7 @@ async function main() {
 
   console.log(`CampusToken deployed to ${campusToken.target}`);
 
-  const vendorMachine = await ethers.deployContract("FHCWVendor", [campusToken.target])
+  const vendorMachine: FHCWVendor = await ethers.deployContract("FHCWVendor", [campusToken.target])
 
   await vendorMachine.waitForDeployment();
 

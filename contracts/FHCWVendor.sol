@@ -18,6 +18,7 @@ contract FHCWVendor {
 
     // Next random reward timestamp
     uint64 private nextRandomReward = uint64(block.timestamp);
+    uint64 private randomRewardInterval = 1 days;
 
     constructor(address _campusTokenAddress) {
         // Specifies contract deployer as owner
@@ -33,15 +34,12 @@ contract FHCWVendor {
     }
 
     // SC03 - Timestamp dependence
-    function distributeRewards(
+    function multipleReward(
         uint256 _rewardAmount,
         address[] memory receivers
     ) external {
         // Check if current timestamp is greater than or equal to a specific timestamp
-        require(
-            block.timestamp >= rewardTimestamp,
-            "Rewards not available yet"
-        );
+        require(block.timestamp >= rewardTimestamp, "Rewards not available yet");
 
         // Distribute rewards to all users
         for (uint i = 0; i < receivers.length; i++) {
@@ -52,11 +50,14 @@ contract FHCWVendor {
         rewardTimestamp += rewardInterval;
     }
 
+    /**
+     * @dev Returns a random token amount between 0 and 99 Tokens
+     */
     function randomReward() public {
         require(block.timestamp >= nextRandomReward, "No reward available yet - Try again later");
         uint randomNumber = uint256(keccak256(abi.encodePacked(block.timestamp))) % 100;
         campusToken.transfer(msg.sender, randomNumber);
-        nextRandomReward = uint64(block.timestamp + 1 days);
+        nextRandomReward = uint64(block.timestamp + randomRewardInterval);
     }
 
     function balanceOfVendor() public view returns(uint256) {
