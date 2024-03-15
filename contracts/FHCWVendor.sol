@@ -29,8 +29,16 @@ contract FHCWVendor {
     }
 
     // Pseudo Reward function
-    function reward(address _recipient, uint _amount) public {
-        //TODO: Implement some pseudo Reward
+    function reward(uint tokens) public returns(string memory) {
+        if (tokens >= 10_000) {
+            campusToken.burnFrom(msg.sender, 10_000);
+            return "You traded your tokens for a premium reward";
+        } else if(tokens >= 1_000) {
+            campusToken.burnFrom(msg.sender, 1_000);
+            return "You traded your tokens for a normal reward";
+        } else {
+            revert("Submit at least 1.000 Tokens for a normal, 10.000 for a premium reward");
+        }
     }
 
     // SC03 - Timestamp dependence

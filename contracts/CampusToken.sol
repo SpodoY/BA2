@@ -17,6 +17,9 @@ contract CampusToken {
     mapping(address accout => uint256) balances;
     mapping(address accout => mapping(address spender => uint)) allowances;
 
+    // Allows contracts in mapping to call sepcial functions
+    mapping(address contracts => bool) hasPrivilege;
+
     /**
      * @dev Validates if the sender has the appropriate balance
      */
@@ -64,7 +67,7 @@ contract CampusToken {
      * @param _to Receiver
      * @param _val Amount of token to be tranfsered
      */
-    function transfer(address _to, uint _val) validBalance(_val) public returns(bool success) {
+    function transfer(address _to, uint _val) validBalance(_val) public returns(bool) {
         require(balances[msg.sender] >= _val, "Insufficient funds!");
         balances[msg.sender] -= _val;
         balances[_to] += _val;
@@ -76,7 +79,7 @@ contract CampusToken {
      * @param _spender The intended spenders address
      * @param _val How many tokens can be spent
      */
-    function approve(address _spender, uint _val) public returns (bool success) {
+    function approve(address _spender, uint _val) public returns (bool) {
         allowances[msg.sender][_spender] = _val;
         return true;
     }
@@ -90,14 +93,13 @@ contract CampusToken {
         return allowances[_owner][_spender];
     }
 
-    //Missing valid balance check - SC07
     /**
      * @dev Allows transfer of tokens through a 3rd party as long as allowance is given
      * @param _from The address where the tokens are deducted
      * @param _to The address where the tokens are added
      * @param _val How many tokens should be tranfered
      */
-    function transferFrom(address _from, address _to, uint _val) validAllowance(_from, _val) public returns(bool success) {
+    function transferFrom(address _from, address _to, uint _val) validAllowance(_from, _val) public returns(bool) {
         require(balances[_from] >= _val, "Insufficient funds!");
         require(allowances[_from][msg.sender] >= _val, "Insufficient allowance!");
         
@@ -127,6 +129,14 @@ contract CampusToken {
         return true;
     }
 
+    function burnFrom(address adr, uint _val) public returns(bool) {
+        require(hasPrivilege[msg.sender]);
+        require(balances[adr] - _val >= 0);
+        balances[adr] -= _val;
+        totalSupply -= _val;
+        return true;
+    }
+
     /**
      * @dev Displays the balance of a given `usr`
      */
@@ -139,5 +149,9 @@ contract CampusToken {
      */
     function selfBalance() public view returns(uint256) {
         return balances[msg.sender];
+    }
+
+    function grantPrivileges(address sc) public ownerOnly() {
+        hasPrivilege[sc] = true;
     }
 }
