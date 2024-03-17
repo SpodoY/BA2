@@ -29,6 +29,7 @@ contract FHCWVendor {
     }
 
     // Pseudo Reward function
+    // SC10 => Unchecked External Calls
     function reward(uint tokens) public returns(string memory) {
         if (tokens >= 10_000) {
             campusToken.burnFrom(msg.sender, 10_000);
@@ -41,11 +42,9 @@ contract FHCWVendor {
         }
     }
 
-    // SC03 - Timestamp dependence
-    function multipleReward(
-        uint256 _rewardAmount,
-        address[] memory receivers
-    ) external {
+    // SC03, SC06 => Timestamp dependence, DoS Attacks
+    // SC09 => Gas Limit
+    function multipleReward(uint256 _rewardAmount, address[] memory receivers) external {
         // Check if current timestamp is greater than or equal to a specific timestamp
         require(block.timestamp >= rewardTimestamp, "Rewards not available yet");
 
@@ -58,6 +57,7 @@ contract FHCWVendor {
         rewardTimestamp += rewardInterval;
     }
 
+    // SC03, SC08 => Timestamp dependence, Insecure Randomness
     /**
      * @dev Returns a random token amount between 0 and 99 Tokens
      */

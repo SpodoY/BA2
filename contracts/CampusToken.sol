@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
+// SC02 => Over/Underflow
 
 contract CampusToken {
+
+    // SC09 => Gas Limit
 
     address public owner;
 
@@ -62,6 +65,7 @@ contract CampusToken {
         balances[msg.sender] = initialTokenAmount;
     }
 
+    // SC07 => Logic Erros (No address checking)
     /**
      * @dev Transfers tokens from the sender to a given receiver
      * @param _to Receiver
@@ -74,6 +78,25 @@ contract CampusToken {
         return true;
     }
 
+    // SC01 => Reentrancy
+    /**
+     * @dev Allows transfer of tokens through a 3rd party as long as allowance is given
+     * @param _from The address where the tokens are deducted
+     * @param _to The address where the tokens are added
+     * @param _val How many tokens should be tranfered
+     */
+    function transferFrom(address _from, address _to, uint _val) validAllowance(_from, _val) public returns(bool) {
+        require(balances[_from] >= _val, "Insufficient funds!");
+        require(allowances[_from][msg.sender] >= _val, "Insufficient allowance!");
+        
+        balances[_from] -= _val;
+        balances[_to] += _val;
+        allowances[_from][msg.sender] -= _val;
+
+        return true;
+    }
+
+    // SC05 => Front running
     /**
      * @dev Allows for a specific address to spend a given amount of tokens of another account
      * @param _spender The intended spenders address
@@ -94,23 +117,6 @@ contract CampusToken {
     }
 
     /**
-     * @dev Allows transfer of tokens through a 3rd party as long as allowance is given
-     * @param _from The address where the tokens are deducted
-     * @param _to The address where the tokens are added
-     * @param _val How many tokens should be tranfered
-     */
-    function transferFrom(address _from, address _to, uint _val) validAllowance(_from, _val) public returns(bool) {
-        require(balances[_from] >= _val, "Insufficient funds!");
-        require(allowances[_from][msg.sender] >= _val, "Insufficient allowance!");
-        
-        balances[_from] -= _val;
-        balances[_to] += _val;
-        allowances[_from][msg.sender] -= _val;
-
-        return true;
-    }
-
-    /**
      * @dev Adds tokens to totalSupply
      * @param _val How many tokens get added
      */
@@ -119,6 +125,7 @@ contract CampusToken {
         balances[account] += _val;
     }
 
+    // SC04 => Access Control
     /**
      * @dev Destroys all passed tokens from user
      * @param _val How many tokens to burn
@@ -129,6 +136,10 @@ contract CampusToken {
         return true;
     }
 
+    // SC01 => Reentrancy
+    /**
+     * @dev Burns `_val` amount of tokens for address `adr`
+     */
     function burnFrom(address adr, uint _val) public returns(bool) {
         require(hasPrivilege[msg.sender]);
         require(balances[adr] - _val >= 0);
@@ -151,6 +162,10 @@ contract CampusToken {
         return balances[msg.sender];
     }
 
+    /**
+     * @dev Meant to grant smart contracs prviliges to execute certain functions
+     * @param sc The Smart contract access shall be granted to
+     */
     function grantPrivileges(address sc) public ownerOnly() {
         hasPrivilege[sc] = true;
     }
