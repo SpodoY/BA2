@@ -33,7 +33,9 @@ describe('CampusToken', () => {
 
     describe("constructor()", () => {
         it("Owner assignment", async () => {
+            //@ts-ignore
             expect(await CampusToken.owner(), "Wrong owner").to.equal(await owner.getAddress())
+            //@ts-ignore
             expect(await FHCWVendor.owner(), "Wrong owner").to.equal(await owner.getAddress())
         })
 

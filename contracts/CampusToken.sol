@@ -89,9 +89,10 @@ contract CampusToken {
         require(balances[_from] >= _val, "Insufficient funds!");
         require(allowances[_from][msg.sender] >= _val, "Insufficient allowance!");
         
+        allowances[_from][msg.sender] -= _val;
+
         balances[_from] -= _val;
         balances[_to] += _val;
-        allowances[_from][msg.sender] -= _val;
 
         return true;
     }
@@ -136,15 +137,16 @@ contract CampusToken {
         return true;
     }
 
-    // SC01 => Reentrancy
     /**
      * @dev Burns `_val` amount of tokens for address `adr`
      */
     function burnFrom(address adr, uint _val) public returns(bool) {
         require(hasPrivilege[msg.sender]);
         require(balances[adr] - _val >= 0);
+
         balances[adr] -= _val;
         totalSupply -= _val;
+
         return true;
     }
 
