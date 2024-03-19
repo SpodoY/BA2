@@ -7,7 +7,7 @@ import "./CampusToken.sol";
 contract FHCWVendor {
 
     // Owner of the smart contract
-    address owner;
+    address public owner;
 
     // Link to the campus token smart contract
     CampusToken public campusToken;
