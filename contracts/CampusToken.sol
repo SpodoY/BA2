@@ -84,8 +84,6 @@ contract CampusToken {
             validAllowance(_from, _val);
             allowances[_from][msg.sender] -= _val;
         }
-        
-        allowances[_from][msg.sender] -= _val;
 
         balances[_from] -= _val;
         balances[_to] += _val;
