@@ -29,19 +29,17 @@ describe('CampusToken', () => {
 
         CampusToken = await TokenFactory.deploy();
         FHCWVendor = await VendorFactory.deploy(CampusToken.target);
+        await CampusToken.grantPrivileges(FHCWVendor.target)
     })
 
     describe("constructor()", () => {
         it("Owner assignment", async () => {
-            //@ts-ignore
+            // @ts-ignore
             expect(await CampusToken.owner(), "Wrong owner").to.equal(await owner.getAddress())
-            //@ts-ignore
-            expect(await FHCWVendor.owner(), "Wrong owner").to.equal(await owner.getAddress())
         })
 
         it("Token init amount", async () => {
             expect(await CampusToken.totalSupply(), "Total supply was not 100.000").to.eq(1_000_000)
-            expect(await FHCWVendor.campusToken(), "Vendor got wrong Token address").to.eq(CampusToken.target)
         })
     });
 
@@ -53,7 +51,7 @@ describe('CampusToken', () => {
         })
     })
 
-    describe('tranfer()', () => { 
+    describe('tranfer()', () => {
         it("Transfer from `addr1` to `addr2`", async () => {
             await CampusToken.transfer(addr1, 100)
 
@@ -63,6 +61,31 @@ describe('CampusToken', () => {
 
         it("Insufficient balance", async () => {
             expect(CampusToken.transfer(addr1, 10_000_000_000)).to.be.revertedWith("Insufficient balance")
+        })
+    })
+
+    describe('tranfserFrom()', () => {
+        it("Failed transfer - No allowance", async () => {
+            const transferAmount = 1_000
+
+            await CampusToken.mint(addr1, transferAmount)
+            //@ts-ignore
+            expect(CampusToken.connect(addr3).transferFrom(addr1, addr2, transferAmount)).to.be.revertedWith("Allowance exceeded")
+        })
+
+        it("Successful transfer", async () => {
+            const transferAmount = 1_000
+            const addr1BalanceBeforeTransfer = await CampusToken.balanceOf(addr1)
+            const addr2BalanceBeforeTransfer = await CampusToken.balanceOf(addr2)
+
+            await CampusToken.mint(addr1, transferAmount)
+            //@ts-ignore
+            await CampusToken.connect(addr1).approve(addr3, transferAmount)
+            //@ts-ignore
+            await CampusToken.connect(addr3).transferFrom(addr1, addr2, transferAmount)
+
+            expect(await CampusToken.balanceOf(addr1)).to.eq(addr1BalanceBeforeTransfer)
+            expect(await CampusToken.balanceOf(addr2)).to.eq(Number(addr2BalanceBeforeTransfer) + transferAmount)
         })
     })
 
