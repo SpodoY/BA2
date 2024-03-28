@@ -22,7 +22,7 @@ contract CampusToken {
     mapping(address accout => mapping(address spender => uint)) allowances;
 
     // Allows contracts in mapping to call sepcial functions
-    mapping(address contracts => bool) priviliges;
+    mapping(address contracts => bool) privileges;
 
     /**
      * @dev Validates if the sender has the appropriate balance
@@ -80,7 +80,7 @@ contract CampusToken {
     function transferFrom(address _from, address _to, uint _val) public returns(bool) {
         require(balances[_from] >= _val, "Insufficient funds!");
 
-        if (!priviliges[msg.sender]) {
+        if (!privileges[msg.sender]) {
             validAllowance(_from, _val);
             allowances[_from][msg.sender] -= _val;
         }
@@ -135,7 +135,7 @@ contract CampusToken {
      * @dev Burns `_val` amount of tokens for address `adr`
      */
     function burnFrom(address adr, uint _val) public returns(bool) {
-        require(priviliges[msg.sender]);
+        require(privileges[msg.sender]);
         require(balances[adr] - _val >= 0);
 
         balances[adr] -= _val;
@@ -167,7 +167,7 @@ contract CampusToken {
     }
 
     function hasPriv(address adr) public view returns(bool) {
-        return priviliges[adr];
+        return privileges[adr];
     }
 
     /**
@@ -175,6 +175,6 @@ contract CampusToken {
      * @param sc The Smart contract access shall be granted to
      */
     function grantPrivileges(address sc) public ownerOnly() {
-        priviliges[sc] = true;
+        privileges[sc] = true;
     }
 }
