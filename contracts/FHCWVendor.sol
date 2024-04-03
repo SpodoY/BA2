@@ -31,6 +31,8 @@ contract FHCWVendor {
         campusToken = CampusToken(_campusTokenAddress);
     }
 
+    receive() external payable {}
+
     // Pseudo Reward function
     // SC10 => Unchecked External Calls
     function reward(uint tokens) public returns(string memory) {
@@ -99,9 +101,11 @@ contract FHCWVendor {
 
         uint256 sellETHVal = (sellAmount / tokenEthRatio) * 10 ** 18;
 
+        require(address(this).balance > sellETHVal, "You most sell more than zero tokens");
+
         // Checks if sender has enough tokens to sell requested amount
         uint256 senderBalance = campusToken.balanceOf(msg.sender);
-        require(senderBalance >= sellAmount, "Seems like you got not enough tokens");
+        require(senderBalance >= sellAmount, "Seems like you haven't got enough tokens");
 
         campusToken.transferFrom(msg.sender, address(this), sellAmount);
 
@@ -110,7 +114,7 @@ contract FHCWVendor {
     }
 
     function withdraw() public {
-        require(msg.sender == owner);
+        require(msg.sender == owner, "You are not the owner and therefore cannot withdraw");
         uint256 contractBalance = address(this).balance;
         require(contractBalance > 0, "Contract holds no ETH currently");
 

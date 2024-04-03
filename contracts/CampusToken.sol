@@ -70,7 +70,6 @@ contract CampusToken {
         return true;
     }
 
-    // SC01 => Reentrancy
     /**
      * @dev Allows transfer of tokens through a 3rd party as long as allowance is given
      * @param _from The address where the tokens are deducted
