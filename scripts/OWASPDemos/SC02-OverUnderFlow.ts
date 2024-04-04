@@ -1,5 +1,6 @@
 import { ethers } from "hardhat";
-import { SC02, TimeLock } from "typechain-types/MaliciousContracts/SC02.sol" 
+//@ts-ignore
+import { SC02 } from "typechain-types/MaliciousContracts/SC02.sol" 
 import hre from "hardhat";
 import { AddressLike } from "ethers";
 

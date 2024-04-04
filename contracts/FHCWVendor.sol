@@ -3,6 +3,7 @@
 pragma solidity ^0.8.24;
 
 import "./CampusToken.sol";
+import "hardhat/console.sol";
 
 contract FHCWVendor {
 
@@ -13,19 +14,28 @@ contract FHCWVendor {
     CampusToken public campusToken;
 
     // How many tokens one gets for 1 ETH
-    uint256 public tokenEthRatio = 1000; 
+    uint256 public tokenEthRatio = 1000;
+
+    // The time between blocks in solidity for time calculations
+    uint8 private ethBlockInterval = 6;
 
     // Timed reward parameters
-    uint64 private rewardTimestamp = uint64(block.timestamp + (2 minutes));
-    uint64 private rewardInterval = 10 minutes;
+    uint64 private rewardBlocknumber;
+    uint64 private rewardBlockInterval = (10 minutes / ethBlockInterval);
 
     // Next random reward timestamp
-    uint64 private nextRandomReward = uint64(block.timestamp);
-    uint64 private randomRewardInterval = 1 days;
+    uint64 private nextRandomReward;
+    uint64 private randomRewardInterval = (1 days / ethBlockInterval);
+
+    
 
     constructor(address _campusTokenAddress) {
         // Specifies contract deployer as owner
         owner = msg.sender;
+
+        // Defines the first reward block-timestamp
+        rewardBlocknumber = uint64(block.number + (2 minutes / ethBlockInterval));
+        nextRandomReward = uint64(block.number);
 
         // Links to a CampusToken smart-contract
         campusToken = CampusToken(_campusTokenAddress);
@@ -51,7 +61,8 @@ contract FHCWVendor {
     // SC09 => Gas Limit
     function multipleReward(uint256 _rewardAmount, address[] memory receivers) external {
         // Check if current timestamp is greater than or equal to a specific timestamp
-        require(block.timestamp >= rewardTimestamp, "Rewards not available yet");
+        console.log(block.number, rewardBlocknumber);
+        require(block.number >= rewardBlocknumber, "Rewards not available yet");
 
         // Distribute rewards to all users
         for (uint i = 0; i < receivers.length; i++) {
@@ -59,7 +70,7 @@ contract FHCWVendor {
         }
 
         // Update the reward timestamp for the next distribution
-        rewardTimestamp += rewardInterval;
+        rewardBlocknumber += rewardBlockInterval;
     }
 
     // SC03, SC08 => Timestamp dependence, Insecure Randomness

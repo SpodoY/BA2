@@ -28,7 +28,11 @@ describe('CampusToken', () => {
         // console.log(`Owner addresses: ${await owner.getAddress()}`)
 
         CampusToken = await TokenFactory.deploy();
+        await CampusToken.waitForDeployment()
+
         FHCWVendor = await VendorFactory.deploy(CampusToken.target);
+        await FHCWVendor.waitForDeployment()
+
         await CampusToken.grantPrivileges(FHCWVendor.target)
     })
 
@@ -46,6 +50,7 @@ describe('CampusToken', () => {
     describe("mint()", () => {
         it("Mint 100 Tokens for Addr1", async () => {
             await CampusToken.mint(addr1, 100 * 10 ^ Number(CampusToken.decimals))
+            
             expect(await CampusToken.balanceOf(addr1)).to.not.eq(100)
             expect(await CampusToken.balanceOf(addr1)).to.eq(1_000)
         })
@@ -66,9 +71,10 @@ describe('CampusToken', () => {
 
     describe('tranfserFrom()', () => {
         it("Failed transfer - No allowance", async () => {
-            const transferAmount = 1_000
+            const transferAmount = 1000
 
             await CampusToken.mint(addr1, transferAmount)
+
             //@ts-ignore
             expect(CampusToken.connect(addr3).transferFrom(addr1, addr2, transferAmount)).to.be.revertedWith("Allowance exceeded")
         })
@@ -79,10 +85,12 @@ describe('CampusToken', () => {
             const addr2BalanceBeforeTransfer = await CampusToken.balanceOf(addr2)
 
             await CampusToken.mint(addr1, transferAmount)
+
             //@ts-ignore
             await CampusToken.connect(addr1).approve(addr3, transferAmount)
+
             //@ts-ignore
-            await CampusToken.connect(addr3).transferFrom(addr1, addr2, transferAmount)
+            CampusToken.connect(addr3).transferFrom(addr1, addr2, transferAmount)
 
             expect(await CampusToken.balanceOf(addr1)).to.eq(addr1BalanceBeforeTransfer)
             expect(await CampusToken.balanceOf(addr2)).to.eq(Number(addr2BalanceBeforeTransfer) + transferAmount)
