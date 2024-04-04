@@ -25,7 +25,7 @@ contract FHCWVendor {
 
     // Next random reward timestamp
     uint64 private nextRandomReward;
-    uint64 private randomRewardInterval = (1 days / ethBlockInterval);
+    uint64 private randomRewardInterval = 1 days;
 
     
 
@@ -35,7 +35,9 @@ contract FHCWVendor {
 
         // Defines the first reward block-timestamp
         rewardBlocknumber = uint64(block.number + (2 minutes / ethBlockInterval));
-        nextRandomReward = uint64(block.number);
+
+        // Random reward can stay in block.timestamp
+        nextRandomReward = uint64(block.timestamp);
 
         // Links to a CampusToken smart-contract
         campusToken = CampusToken(_campusTokenAddress);
