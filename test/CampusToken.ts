@@ -89,11 +89,13 @@ describe('CampusToken', () => {
             //@ts-ignore
             await CampusToken.connect(addr1).approve(addr3, transferAmount)
 
-            //@ts-ignore
-            CampusToken.connect(addr3).transferFrom(addr1, addr2, transferAmount)
+            console.log(`Allowance for 3: ${await CampusToken.allowance(addr1, addr3)}`)
 
-            expect(await CampusToken.balanceOf(addr1)).to.eq(addr1BalanceBeforeTransfer)
-            expect(await CampusToken.balanceOf(addr2)).to.eq(Number(addr2BalanceBeforeTransfer) + transferAmount)
+            //@ts-ignore
+            await CampusToken.connect(addr3).transferFrom(addr1, addr2, transferAmount)
+
+            expect(await CampusToken.balanceOf(addr1), "Addr1 should have 0 Tokens").to.eq(addr1BalanceBeforeTransfer)
+            expect(await CampusToken.balanceOf(addr2), "Addr2 should have 1000 Tokens").to.eq(Number(addr2BalanceBeforeTransfer) + transferAmount)
         })
     })
 

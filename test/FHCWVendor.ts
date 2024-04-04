@@ -62,6 +62,7 @@ describe('FHCWVendor', () => {
         
         it("Rollback since block not reached yet", async () => {
 
+            //@ts-ignore
             const rewardees = [await addr1.getAddress(), await addr2.getAddress()]
             expect(FHCWVendor.multipleReward(rewardAmount, rewardees)).to.be.revertedWith("Rewards not available yet")
             
@@ -69,6 +70,7 @@ describe('FHCWVendor', () => {
 
         it("Reward for 2 people", async () => {
 
+            //@ts-ignore
             const rewardees = [await addr1.getAddress(), await addr2.getAddress()]
             
             await mine(20)
