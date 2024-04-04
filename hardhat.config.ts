@@ -3,13 +3,22 @@ import "@nomicfoundation/hardhat-toolbox";
 require("@nomicfoundation/hardhat-toolbox");
 
 const config: HardhatUserConfig = {
-  solidity: "0.8.24",
+  solidity: {
+    compilers: [
+      {
+        version: "0.8.24",
+      },
+      {
+        version: "0.7.6"
+      }
+    ],
+  },
   networks: {
     hardhat: {
       gas: "auto",
       mining: {
         auto: false,
-        interval: 500
+        interval: 1000
       }
     }
   }
