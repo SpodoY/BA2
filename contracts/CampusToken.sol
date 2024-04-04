@@ -2,10 +2,11 @@
 pragma solidity ^0.8.24;
 // SC02 => Over/Underflow
 
+import "hardhat/console.sol";
+
 contract CampusToken {
 
     // SC09 => Gas Limit
-
     address public owner;
 
     // Name and Symbol of Token
@@ -21,22 +22,13 @@ contract CampusToken {
     mapping(address accout => mapping(address spender => uint)) allowances;
 
     // Allows contracts in mapping to call sepcial functions
-    mapping(address contracts => bool) hasPrivilege;
+    mapping(address contracts => bool) privileges;
 
     /**
      * @dev Validates if the sender has the appropriate balance
      */
     modifier validBalance(uint _val) {
         require(balances[msg.sender] >= _val, "Insufficient balance");
-        _;
-    }
-
-    // 
-    /**
-     * @dev Validates if allowance is sufficient for transaction
-     */
-    modifier validAllowance(address _from, uint _val) {
-        require(allowances[_from][msg.sender] >= _val, "Allowance exceeded");
         _;
     }
 
@@ -78,20 +70,22 @@ contract CampusToken {
         return true;
     }
 
-    // SC01 => Reentrancy
     /**
      * @dev Allows transfer of tokens through a 3rd party as long as allowance is given
      * @param _from The address where the tokens are deducted
      * @param _to The address where the tokens are added
      * @param _val How many tokens should be tranfered
      */
-    function transferFrom(address _from, address _to, uint _val) validAllowance(_from, _val) public returns(bool) {
+    function transferFrom(address _from, address _to, uint _val) public returns(bool) {
         require(balances[_from] >= _val, "Insufficient funds!");
-        require(allowances[_from][msg.sender] >= _val, "Insufficient allowance!");
-        
+
+        if (!privileges[msg.sender]) {
+            validAllowance(_from, _val);
+            allowances[_from][msg.sender] -= _val;
+        }
+
         balances[_from] -= _val;
         balances[_to] += _val;
-        allowances[_from][msg.sender] -= _val;
 
         return true;
     }
@@ -136,15 +130,16 @@ contract CampusToken {
         return true;
     }
 
-    // SC01 => Reentrancy
     /**
      * @dev Burns `_val` amount of tokens for address `adr`
      */
     function burnFrom(address adr, uint _val) public returns(bool) {
-        require(hasPrivilege[msg.sender]);
+        require(privileges[msg.sender]);
         require(balances[adr] - _val >= 0);
+
         balances[adr] -= _val;
         totalSupply -= _val;
+
         return true;
     }
 
@@ -162,11 +157,23 @@ contract CampusToken {
         return balances[msg.sender];
     }
 
+    // 
+    /**
+     * @dev Validates if allowance is sufficient for transaction
+     */
+    function validAllowance(address _from, uint _val) private view {
+        require(allowances[_from][msg.sender] >= _val, "Allowance exceeded");
+    }
+
+    function hasPriv(address adr) public view returns(bool) {
+        return privileges[adr];
+    }
+
     /**
      * @dev Meant to grant smart contracs prviliges to execute certain functions
      * @param sc The Smart contract access shall be granted to
      */
     function grantPrivileges(address sc) public ownerOnly() {
-        hasPrivilege[sc] = true;
+        privileges[sc] = true;
     }
 }

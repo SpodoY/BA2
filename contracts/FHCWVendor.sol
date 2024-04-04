@@ -7,10 +7,13 @@ import "./CampusToken.sol";
 contract FHCWVendor {
 
     // Owner of the smart contract
-    address owner;
+    address public owner;
 
     // Link to the campus token smart contract
     CampusToken public campusToken;
+
+    // How many tokens one gets for 1 ETH
+    uint256 public tokenEthRatio = 1000; 
 
     // Timed reward parameters
     uint64 private rewardTimestamp = uint64(block.timestamp + (2 minutes));
@@ -27,6 +30,8 @@ contract FHCWVendor {
         // Links to a CampusToken smart-contract
         campusToken = CampusToken(_campusTokenAddress);
     }
+
+    receive() external payable {}
 
     // Pseudo Reward function
     // SC10 => Unchecked External Calls
@@ -70,5 +75,50 @@ contract FHCWVendor {
 
     function balanceOfVendor() public view returns(uint256) {
         return campusToken.balanceOf(address(this));
+    }
+
+    function buyTokens() public payable returns (uint256 tokensCount) {
+        require(msg.value > 0, "Send ETH to buy tokens");
+
+        uint256 tokenAmount = (msg.value / 10 ** 18)  * tokenEthRatio;
+
+        uint256 senderBalance = balanceOfVendor();
+        require(senderBalance >= tokenAmount, "Vendor contract seems to not have enough tokens");
+
+        // Transfers tokens from Vendor to sender
+        require(campusToken.transfer(msg.sender, tokenAmount));
+
+        return tokenAmount;
+    }
+
+    /**
+     * @dev Sells the amount of tokens the user provides
+     * @param sellAmount The amount of tokens to sell
+     */
+    function sellTokens(uint256 sellAmount) public {
+        // Checks if requested amount is more than 0
+        require(sellAmount > 0, "You most sell more than zero tokens");
+
+        uint256 sellETHVal = (sellAmount / tokenEthRatio) * 10 ** 18;
+
+        require(address(this).balance > sellETHVal, "You most sell more than zero tokens");
+
+        // Checks if sender has enough tokens to sell requested amount
+        uint256 senderBalance = campusToken.balanceOf(msg.sender);
+        require(senderBalance >= sellAmount, "Seems like you haven't got enough tokens");
+
+        campusToken.transferFrom(msg.sender, address(this), sellAmount);
+
+        (bool sent, ) = msg.sender.call{value: sellETHVal}("");
+        require(sent, "Couldn't send ETH to user");
+    }
+
+    function withdraw() public {
+        require(msg.sender == owner, "You are not the owner and therefore cannot withdraw");
+        uint256 contractBalance = address(this).balance;
+        require(contractBalance > 0, "Contract holds no ETH currently");
+
+        (bool sent, ) = msg.sender.call{value: contractBalance}("");
+        require(sent, "Couldn't transfer ETH to owner");
     }
 }
