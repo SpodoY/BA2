@@ -83,9 +83,13 @@ contract FHCWVendor {
         // Checks if the next reward is available yet
         require(block.number >= nextRandomReward, "No reward available yet - Try again later");
 
-        // 
-        uint randomNumber = uint(block.number * block.timestamp) % 100;
+        // Calculates random reward based on number
+        uint randomNumber = (block.number * 1234) % 100;
+
+        // Transfers Tokens to sender
         campusToken.transfer(msg.sender, randomNumber);
+
+        // Sets the next random reward time
         nextRandomReward = uint64(block.number + randomRewardInterval);
     }
 
