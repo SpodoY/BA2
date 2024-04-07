@@ -3,11 +3,12 @@ pragma solidity ^0.8.24;
 // SC02 => Over/Underflow
 
 import "hardhat/console.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
 
-contract CampusToken {
+contract CampusToken is Ownable {
 
     // SC09 => Gas Limit
-    address public owner;
 
     // Name and Symbol of Token
     string name;
@@ -32,17 +33,7 @@ contract CampusToken {
         _;
     }
 
-    /**
-     * @dev Validates if the sender is the owner
-     */
-    modifier ownerOnly() {
-        require(msg.sender == owner, "You are not owner!");
-        _;
-    }
-
-    constructor() {
-        // Specifies contract deployer as owner
-        owner = msg.sender;
+    constructor() Ownable(msg.sender) {
 
         // Sets name and Symbol of Token
         name = "Campus Token";
@@ -114,7 +105,7 @@ contract CampusToken {
      * @dev Adds tokens to totalSupply
      * @param _val How many tokens get added
      */
-    function mint(address account, uint _val) public ownerOnly {
+    function mint(address account, uint _val) public onlyOwner() {
         totalSupply += _val;
         balances[account] += _val;
     }
@@ -135,7 +126,7 @@ contract CampusToken {
      * @dev Burns `_val` amount of tokens for address `adr`
      */
     function burnFrom(address adr, uint _val) public returns(bool) {
-        require(privileges[msg.sender]);
+        require(privileges[msg.sender] || msg.sender == owner());
         require(balances[adr] - _val >= 0);
 
         balances[adr] -= _val;
@@ -174,7 +165,7 @@ contract CampusToken {
      * @dev Meant to grant smart contracs prviliges to execute certain functions
      * @param sc The Smart contract access shall be granted to
      */
-    function grantPrivileges(address sc) public ownerOnly() {
+    function grantPrivileges(address sc) public onlyOwner() {
         privileges[sc] = true;
     }
 }
