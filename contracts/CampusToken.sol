@@ -119,7 +119,7 @@ contract CampusToken {
         balances[account] += _val;
     }
 
-    // SC04 => Access Control
+    
     /**
      * @dev Destroys all passed tokens from user
      * @param _val How many tokens to burn
@@ -130,6 +130,7 @@ contract CampusToken {
         return true;
     }
 
+    // SC04 => Access Control - No owner specified
     /**
      * @dev Burns `_val` amount of tokens for address `adr`
      */
