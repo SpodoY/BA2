@@ -4,11 +4,10 @@ pragma solidity ^0.8.24;
 
 import "./CampusToken.sol";
 import "hardhat/console.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
 
-contract FHCWVendor {
-
-    // Owner of the smart contract
-    address public owner;
+contract FHCWVendor is Ownable {
 
     // Link to the campus token smart contract
     CampusToken public campusToken;
@@ -27,11 +26,7 @@ contract FHCWVendor {
     uint64 private nextRandomReward;
     uint64 private randomRewardInterval = 1 days / ethBlockInterval;
 
-    
-
-    constructor(address _campusTokenAddress) {
-        // Specifies contract deployer as owner
-        owner = msg.sender;
+    constructor(address _campusTokenAddress) Ownable(msg.sender) {
 
         // Defines the first reward block-timestamp
         rewardBlocknumber = uint64(block.number + (2 minutes / ethBlockInterval));
@@ -136,8 +131,7 @@ contract FHCWVendor {
         require(sent, "Couldn't send ETH to user");
     }
 
-    function withdraw() public {
-        require(msg.sender == owner, "You are not the owner and therefore cannot withdraw");
+    function withdraw() public onlyOwner() {
         uint256 contractBalance = address(this).balance;
         require(contractBalance > 0, "Contract holds no ETH currently");
 

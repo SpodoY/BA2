@@ -3,11 +3,15 @@ pragma solidity ^0.8.24;
 // SC02 => Over/Underflow
 
 import "hardhat/console.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/access/AccessControl.sol";
 
-contract CampusToken {
+contract CampusToken is Ownable, AccessControl {
 
     // SC09 => Gas Limit
-    address public owner;
+
+    // Priviliged role 
+    bytes32 public constant PRIV_ROLE = keccak256("PRIV_ROLE");
 
     // Name and Symbol of Token
     string name;
@@ -21,8 +25,8 @@ contract CampusToken {
     mapping(address accout => uint256) balances;
     mapping(address accout => mapping(address spender => uint)) allowances;
 
-    // Allows contracts in mapping to call sepcial functions
-    mapping(address contracts => bool) privileges;
+    // Custom error when caller is not privileged
+    error CallerNotPriviledged(address caller);
 
     /**
      * @dev Validates if the sender has the appropriate balance
@@ -32,21 +36,15 @@ contract CampusToken {
         _;
     }
 
-    /**
-     * @dev Validates if the sender is the owner
-     */
-    modifier ownerOnly() {
-        require(msg.sender == owner, "You are not owner!");
-        _;
-    }
-
-    constructor() {
-        // Specifies contract deployer as owner
-        owner = msg.sender;
+    constructor() Ownable(msg.sender) {
 
         // Sets name and Symbol of Token
         name = "Campus Token";
         symbol = "FHCW";
+
+        // Grant the contract deployer the default admin role and the priv role
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _grantRole(PRIV_ROLE, msg.sender);
 
         uint initialTokenAmount = 100_000 * 10 ** decimals;
 
@@ -79,7 +77,7 @@ contract CampusToken {
     function transferFrom(address _from, address _to, uint _val) public returns(bool) {
         require(balances[_from] >= _val, "Insufficient funds!");
 
-        if (!privileges[msg.sender]) {
+        if (!hasRole(PRIV_ROLE, msg.sender)) {
             validAllowance(_from, _val);
             allowances[_from][msg.sender] -= _val;
         }
@@ -114,7 +112,7 @@ contract CampusToken {
      * @dev Adds tokens to totalSupply
      * @param _val How many tokens get added
      */
-    function mint(address account, uint _val) public ownerOnly {
+    function mint(address account, uint _val) public onlyOwner() {
         totalSupply += _val;
         balances[account] += _val;
     }
@@ -135,7 +133,9 @@ contract CampusToken {
      * @dev Burns `_val` amount of tokens for address `adr`
      */
     function burnFrom(address adr, uint _val) public returns(bool) {
-        require(privileges[msg.sender]);
+        if (!hasRole(PRIV_ROLE, msg.sender)) { 
+            revert CallerNotPriviledged(msg.sender); 
+        }
         require(balances[adr] - _val >= 0);
 
         balances[adr] -= _val;
@@ -164,17 +164,5 @@ contract CampusToken {
      */
     function validAllowance(address _from, uint _val) private view {
         require(allowances[_from][msg.sender] >= _val, "Allowance exceeded");
-    }
-
-    function hasPriv(address adr) public view returns(bool) {
-        return privileges[adr];
-    }
-
-    /**
-     * @dev Meant to grant smart contracs prviliges to execute certain functions
-     * @param sc The Smart contract access shall be granted to
-     */
-    function grantPrivileges(address sc) public ownerOnly() {
-        privileges[sc] = true;
     }
 }

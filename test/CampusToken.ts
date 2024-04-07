@@ -33,7 +33,8 @@ describe('CampusToken', () => {
         FHCWVendor = await VendorFactory.deploy(CampusToken.target);
         await FHCWVendor.waitForDeployment()
 
-        await CampusToken.grantPrivileges(FHCWVendor.target)
+        const roleHash = await CampusToken.PRIV_ROLE();
+        await CampusToken.grantRole(roleHash, FHCWVendor.target)
     })
 
     describe("constructor()", () => {
