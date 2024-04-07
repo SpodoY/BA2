@@ -34,7 +34,8 @@ describe('FHCWVendor', () => {
         FHCWVendor = await VendorFactory.deploy(CampusToken.target);
         FHCWVendor.waitForDeployment();
 
-        await CampusToken.grantPrivileges(FHCWVendor.target)
+        const roleHash = await CampusToken.PRIV_ROLE();
+        await CampusToken.grantRole(roleHash, FHCWVendor.target)
 
         // Equals 50.000 Tokens
         const initialVendorTokens = 500_000

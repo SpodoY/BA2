@@ -26,8 +26,6 @@ contract FHCWVendor is Ownable {
     uint64 private nextRandomReward;
     uint64 private randomRewardInterval = 1 days / ethBlockInterval;
 
-    
-
     constructor(address _campusTokenAddress) Ownable(msg.sender) {
 
         // Defines the first reward block-timestamp
