@@ -37,7 +37,7 @@ contract FHCWVendor {
         rewardBlocknumber = uint64(block.number + (2 minutes / ethBlockInterval));
 
         // Random reward can stay in block.timestamp
-        nextRandomReward = uint64(block.timestamp);
+        nextRandomReward = uint64(block.number);
 
         // Links to a CampusToken smart-contract
         campusToken = CampusToken(_campusTokenAddress);
@@ -79,8 +79,9 @@ contract FHCWVendor {
     /**
      * @dev Returns a random token amount between 0 and 99 Tokens
      */
-    function randomReward() public {
+    function randomReward() public returns(uint256) {
         // Checks if the next reward is available yet
+        console.log(block.number, nextRandomReward);
         require(block.number >= nextRandomReward, "No reward available yet - Try again later");
 
         // Calculates random reward based on number
@@ -91,6 +92,8 @@ contract FHCWVendor {
 
         // Sets the next random reward time
         nextRandomReward = uint64(block.number + randomRewardInterval);
+
+        return randomNumber;
     }
 
     function balanceOfVendor() public view returns(uint256) {

@@ -62,7 +62,7 @@ describe('FHCWVendor', () => {
         
         it("Rollback since block not reached yet", async () => {
 
-            //@ts-ignore
+            // @ts-ignore
             const rewardees = [await addr1.getAddress(), await addr2.getAddress()]
             expect(FHCWVendor.multipleReward(rewardAmount, rewardees)).to.be.revertedWith("Rewards not available yet")
             
@@ -70,7 +70,7 @@ describe('FHCWVendor', () => {
 
         it("Reward for 2 people", async () => {
 
-            //@ts-ignore
+            // @ts-ignore
             const rewardees = [await addr1.getAddress(), await addr2.getAddress()]
             
             await mine(20)
@@ -80,6 +80,40 @@ describe('FHCWVendor', () => {
             rewardees.forEach(async rewardee => {
                 expect(await CampusToken.balanceOf(rewardee), `Not ${rewardAmount} Tokens`).to.eq(rewardAmount)
             });
+        })
+    })
+
+    describe('randomReward()', () => {
+        
+        it("Rollback since block not reached yet", async () => {
+
+            // @ts-ignore
+            expect(FHCWVendor.connect(addr1).randomReward()).to.be.revertedWith("No reward available yet - Try again later")
+            
+        })
+
+        it("Reward granted", async () => {
+
+            //Type any due to typescript not able to recognize 'AddressLike' as an address
+            const rewardee: any = addr1
+            
+
+            // Mine frist block instantaneously
+            await FHCWVendor.connect(rewardee).randomReward()
+            const firstReward = await CampusToken.balanceOf(rewardee)
+            console.log(firstReward)
+
+            // Mine amount of blocks to 'skip' 1 day
+            await mine(24 * 60 * 60 / 6)
+
+            await FHCWVendor.connect(rewardee).randomReward()
+            const secondReward = await CampusToken.balanceOf(rewardee) - firstReward
+            console.log(secondReward)
+
+            expect(await CampusToken.balanceOf(rewardee), `Balance of rewardee is 0!`).to.gt(0)
+            expect(firstReward, `Rewards are equal :(`).to.not.eq(secondReward)
+
+            console.log(await CampusToken.balanceOf(rewardee))
         })
     })
 
