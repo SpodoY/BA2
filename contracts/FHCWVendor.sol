@@ -21,11 +21,11 @@ contract FHCWVendor {
 
     // Timed reward parameters
     uint64 private rewardBlocknumber;
-    uint64 private rewardBlockInterval = (10 minutes / ethBlockInterval);
+    uint64 private rewardBlockInterval = 10 minutes / ethBlockInterval;
 
     // Next random reward timestamp
     uint64 private nextRandomReward;
-    uint64 private randomRewardInterval = 1 days;
+    uint64 private randomRewardInterval = 1 days / ethBlockInterval;
 
     
 
@@ -80,10 +80,13 @@ contract FHCWVendor {
      * @dev Returns a random token amount between 0 and 99 Tokens
      */
     function randomReward() public {
-        require(block.timestamp >= nextRandomReward, "No reward available yet - Try again later");
-        uint randomNumber = uint256(keccak256(abi.encodePacked(block.timestamp))) % 100;
+        // Checks if the next reward is available yet
+        require(block.number >= nextRandomReward, "No reward available yet - Try again later");
+
+        // 
+        uint randomNumber = uint(block.number * block.timestamp) % 100;
         campusToken.transfer(msg.sender, randomNumber);
-        nextRandomReward = uint64(block.timestamp + randomRewardInterval);
+        nextRandomReward = uint64(block.number + randomRewardInterval);
     }
 
     function balanceOfVendor() public view returns(uint256) {
