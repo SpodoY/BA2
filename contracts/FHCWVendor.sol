@@ -132,6 +132,7 @@ contract FHCWVendor is Ownable {
 
     /**
      * @dev Takes a calculated hash and puts it in the mapping - Also checks if the users has ever commited before
+     * Commit function to store the hash calculated using keccak256(address in lowercase + solution + secret).
      */
     function commitSolution(bytes32 _hash) public notSolvedYet {
         Commit storage commit = commits[msg.sender];
