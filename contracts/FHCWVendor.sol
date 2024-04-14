@@ -91,6 +91,15 @@ contract FHCWVendor is Ownable {
         return randomNumber;
     }
 
+    // SC05 => Front running
+    /**
+     * @dev Returns a reward of 5 ETH when guessing the correct riddle string
+     * If the caller is the owner, the new riddleString is set instead
+     */
+    function riddleReward(string memory riddleInput) public {
+        
+    } 
+
     function balanceOfVendor() public view returns(uint256) {
         return campusToken.balanceOf(address(this));
     }
