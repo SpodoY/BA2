@@ -26,7 +26,11 @@ contract FHCWVendor is Ownable {
     uint64 private nextRandomReward;
     uint64 private randomRewardInterval = 1 days / ethBlockInterval;
 
-    constructor(address _campusTokenAddress) Ownable(msg.sender) {
+    // Riddle variables
+    bytes32 public curRiddleHash = 0x53e61710ae17ed8d626f337ee873b5712496127c5b096c597ed1e733518c48b2;
+    bool private hasbeenSolved = false;
+
+    constructor(address _campusTokenAddress) payable Ownable(msg.sender) {
 
         // Defines the first reward block-timestamp
         rewardBlocknumber = uint64(block.number + (2 minutes / ethBlockInterval));
@@ -97,7 +101,17 @@ contract FHCWVendor is Ownable {
      * If the caller is the owner, the new riddleString is set instead
      */
     function riddleReward(string memory riddleInput) public {
-        
+        if (msg.sender == owner()) {
+            curRiddleHash = keccak256(abi.encodePacked(riddleInput));
+            hasbeenSolved = false;
+            return;
+        }
+        require(!hasbeenSolved, "The riddle has been solved already, wait for the next riddle");
+        require(curRiddleHash == keccak256(abi.encodePacked(riddleInput)), "Wrong answer");
+
+        (bool sent, ) = msg.sender.call{value: 2 ether}("");
+        require(sent, "Failed to send ether");
+        hasbeenSolved = true;
     } 
 
     function balanceOfVendor() public view returns(uint256) {
