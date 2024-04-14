@@ -27,7 +27,7 @@ contract FHCWVendor is Ownable {
     uint64 private randomRewardInterval = 1 days / ethBlockInterval;
 
     // Riddle variables
-    bytes32 public curRiddleHash = 0x53e61710ae17ed8d626f337ee873b5712496127c5b096c597ed1e733518c48b2;
+    bytes32 public curRiddleHash = 0x53e61710ae17ed8d626f337ee873b5712496127c5b096c597ed1e733518c48b2; // It's 'Raccoon' ;)
     bool private hasbeenSolved = false;
 
     constructor(address _campusTokenAddress) payable Ownable(msg.sender) {
