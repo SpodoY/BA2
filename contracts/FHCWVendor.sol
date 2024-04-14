@@ -28,7 +28,7 @@ contract FHCWVendor is Ownable {
 
     // Riddle variables
     bytes32 public curRiddleHash = 0x53e61710ae17ed8d626f337ee873b5712496127c5b096c597ed1e733518c48b2; // It's 'Raccoon' ;)
-    uint256 public riddleRewardAmount = 2 ether; // It's 'Raccoon' ;)
+    uint256 public riddleRewardAmount = 2 ether;
     bool private hasbeenSolved = false;
 
     struct Commit {
