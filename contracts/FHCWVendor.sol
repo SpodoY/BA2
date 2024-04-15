@@ -26,7 +26,26 @@ contract FHCWVendor is Ownable {
     uint64 private nextRandomReward;
     uint64 private randomRewardInterval = 1 days / ethBlockInterval;
 
-    constructor(address _campusTokenAddress) Ownable(msg.sender) {
+    // Riddle variables
+    bytes32 public curRiddleHash = 0x53e61710ae17ed8d626f337ee873b5712496127c5b096c597ed1e733518c48b2; // It's 'Raccoon' ;)
+    uint256 public riddleRewardAmount = 2 ether;
+    bool private hasbeenSolved = false;
+
+    struct Commit {
+        bytes32 riddleHash;
+        uint256 commitTime;
+        bool isRevealed;
+    }
+
+    // Maps addresses to their commit
+    mapping(address => Commit) commits;
+
+    modifier notSolvedYet {
+        require(!hasbeenSolved, "The riddle has been solved already, wait for the next riddle");
+        _;
+    }
+
+    constructor(address _campusTokenAddress) payable Ownable(msg.sender) {
 
         // Defines the first reward block-timestamp
         rewardBlocknumber = uint64(block.number + (2 minutes / ethBlockInterval));
@@ -87,8 +106,56 @@ contract FHCWVendor is Ownable {
 
         // Sets the next random reward time
         nextRandomReward = uint64(block.number + randomRewardInterval);
+        console.log(nextRandomReward);
 
         return randomNumber;
+    }
+
+    // SC05 => Front running
+    /**
+     * @dev Returns a reward of 5 ETH when guessing the correct riddle string
+     * If the caller is the owner, the new riddleString is set instead
+     */
+    function riddleReward(string memory riddleInput) public {
+        if (msg.sender == owner()) {
+            curRiddleHash = keccak256(abi.encodePacked(riddleInput));
+            hasbeenSolved = false;
+            return;
+        }
+        require(!hasbeenSolved, "The riddle has been solved already, wait for the next riddle");
+        require(curRiddleHash == keccak256(abi.encodePacked(riddleInput)), "Wrong answer");
+
+        (bool sent, ) = msg.sender.call{value: riddleRewardAmount}("");
+        require(sent, "Failed to send ether");
+        hasbeenSolved = true;
+    }
+
+    /**
+     * @dev Takes a calculated hash and puts it in the mapping - Also checks if the users has ever commited before
+     * Commit function to store the hash calculated using keccak256(address in lowercase + solution + secret).
+     */
+    function commitSolution(bytes32 _hash) public notSolvedYet {
+        Commit storage commit = commits[msg.sender];
+        require(commit.commitTime == 0, "Already commited");
+        commit.riddleHash = _hash;
+        commit.commitTime = block.timestamp;
+        commit.isRevealed = false;
+    }
+
+    function revealSolution(string memory _solution, string memory _secret) public notSolvedYet {
+        Commit storage commit = commits[msg.sender];
+        require(commit.commitTime != 0, "No commit yet!");
+        require(commit.commitTime < block.timestamp, "Cannot commit and reveal in the same block!");
+        require(!commit.isRevealed, "You already revealed your solution");
+
+        bytes32 riddleHash = keccak256(abi.encodePacked(msg.sender, _solution, _secret));
+        require(riddleHash == commit.riddleHash, "Hash doesn't match");
+        require(keccak256(abi.encodePacked(_solution)) == curRiddleHash, "Incorrent answer");
+
+        (bool sent, ) = payable(msg.sender).call{value: riddleRewardAmount}("");
+        if (!sent) { revert("Failed to reward winner, reverting..."); }
+
+        hasbeenSolved = true;
     }
 
     function balanceOfVendor() public view returns(uint256) {

@@ -88,7 +88,6 @@ contract CampusToken is Ownable, AccessControl {
         return true;
     }
 
-    // SC05 => Front running
     /**
      * @dev Allows for a specific address to spend a given amount of tokens of another account
      * @param _spender The intended spenders address

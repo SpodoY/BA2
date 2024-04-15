@@ -7,6 +7,8 @@ import { time, mine } from "@nomicfoundation/hardhat-network-helpers";
 
 describe('FHCWVendor', () => {
     //global vars
+    const provider = ethers.provider;
+
     let TokenFactory: CampusToken__factory;
     let CampusToken: CampusToken;
 
@@ -60,20 +62,20 @@ describe('FHCWVendor', () => {
     describe('multipleReward()', () => {
 
         const rewardAmount = 1000
-        
+
         it("Rollback since block not reached yet", async () => {
 
             // @ts-ignore
             const rewardees = [await addr1.getAddress(), await addr2.getAddress()]
-            expect(FHCWVendor.multipleReward(rewardAmount, rewardees)).to.be.revertedWith("Rewards not available yet")
-            
+            await expect(FHCWVendor.multipleReward(rewardAmount, rewardees)).to.be.revertedWith("Rewards not available yet")
+
         })
 
         it("Reward for 2 people", async () => {
 
             // @ts-ignore
             const rewardees = [await addr1.getAddress(), await addr2.getAddress()]
-            
+
             await mine(20)
 
             await FHCWVendor.multipleReward(rewardAmount, rewardees)
@@ -85,37 +87,73 @@ describe('FHCWVendor', () => {
     })
 
     describe('randomReward()', () => {
-        
+
         it("Rollback since block not reached yet", async () => {
 
             // @ts-ignore
-            expect(FHCWVendor.connect(addr1).randomReward()).to.be.revertedWith("No reward available yet - Try again later")
-            
+            await FHCWVendor.connect(addr1).randomReward()
+            await expect(FHCWVendor.connect(addr1).randomReward()).to.be.revertedWith("No reward available yet - Try again later")
+
         })
 
         it("Reward granted", async () => {
 
             //Type any due to typescript not able to recognize 'AddressLike' as an address
             const rewardee: any = addr1
-            
+
 
             // Mine frist block instantaneously
             await FHCWVendor.connect(rewardee).randomReward()
             const firstReward = await CampusToken.balanceOf(rewardee)
-            console.log(firstReward)
+            // console.log(firstReward) // For debugging
 
-            // Mine amount of blocks to 'skip' 1 day
-            await mine(24 * 60 * 60 / 6)
+            // Mine amount of blocks to 'skip' 1 day and 10 minutes
+            await mine((24 * 60 * 60 + 10 * 60) / 6)
+
 
             await FHCWVendor.connect(rewardee).randomReward()
             const secondReward = await CampusToken.balanceOf(rewardee) - firstReward
-            console.log(secondReward)
+            // console.log(secondReward) // For debugging
 
             expect(await CampusToken.balanceOf(rewardee), `Balance of rewardee is 0!`).to.gt(0)
             expect(firstReward, `Rewards are equal :(`).to.not.eq(secondReward)
 
-            console.log(await CampusToken.balanceOf(rewardee))
+            // console.log(await CampusToken.balanceOf(rewardee)) // For debugging
         })
+    })
+
+    describe('riddleReward()', () => {
+        it("Solve riddle", async () => {
+
+            await owner.sendTransaction({
+                to: FHCWVendor.target,
+                value: ethers.parseEther("10")
+            })
+
+            await FHCWVendor.connect(addr1).riddleReward("Raccoon");
+
+            expect(await provider.getBalance(addr1), "Account should have more than 10000 ETH").to.be.gt(ethers.parseEther("10000"))
+            expect(await provider.getBalance(FHCWVendor.target), "Contract should have 8 ETH left").to.eq(ethers.parseEther("8"))
+
+        })
+
+        it("Riddle already solved", async () => {
+
+            //@ts-ignore
+            await owner.sendTransaction({
+                to: FHCWVendor.target,
+                value: ethers.parseEther("10")
+            })
+    
+            await FHCWVendor.connect(addr1).riddleReward("Raccoon");
+    
+            expect(await provider.getBalance(addr1), "Account should have more than 10000 ETH").to.be.gt(ethers.parseEther("10000"))
+            expect(await provider.getBalance(FHCWVendor.target), "Contract should have 8 ETH left").to.eq(ethers.parseEther("8"))
+    
+            await expect(FHCWVendor.connect(addr2).riddleReward("Raccoon")).to.be.revertedWith("The riddle has been solved already, wait for the next riddle")
+    
+        })
+
     })
 
 })
