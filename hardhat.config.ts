@@ -17,7 +17,7 @@ const config: HardhatUserConfig = {
     hardhat: {
       gas: "auto",
       mining: {
-        auto: false,
+        auto: true,
         interval: 1000
       }
     }
