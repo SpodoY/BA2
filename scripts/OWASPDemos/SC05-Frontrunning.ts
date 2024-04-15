@@ -75,8 +75,8 @@ async function main() {
         console.log(`Riddle solve for ${error.transaction.from} failed with ${BigInt(error.receipt.gasPrice) / BigInt(10 ** 9)} Gwei`)
     }
 
-    console.log(`Addr1 Balance: ${await provider.getBalance(addr1)}`)
-    console.log(`Addr2 Balance: ${await provider.getBalance(addr2)}`)
+    console.log(`Addr1 (Victim) Balance: ${await provider.getBalance(addr1)}`)
+    console.log(`Addr2 (Attacker) Balance: ${await provider.getBalance(addr2)}`)
 }
 
 // We recommend this pattern to be able to use async/await everywhere
