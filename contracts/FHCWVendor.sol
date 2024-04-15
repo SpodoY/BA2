@@ -142,6 +142,11 @@ contract FHCWVendor is Ownable {
         commit.isRevealed = false;
     }
 
+    /**
+     * @dev Reveals the answer by requireing the secret and solution to generate the hash
+     * If the hashes match then the inputs in the commits were the same and the riddle is solved
+     * If not, then the function is roled back
+     */
     function revealSolution(string memory _solution, string memory _secret) public notSolvedYet {
         Commit storage commit = commits[msg.sender];
         require(commit.commitTime != 0, "No commit yet!");
