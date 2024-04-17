@@ -23,6 +23,10 @@ describe('CampusToken', () => {
 
         [owner, addr1, addr2, addr3] = await hre.ethers.getSigners();
 
+        /** For debugging */
+        // console.log(`User addresses: ${await addr1.getAddress()}, ${await addr2.getAddress()}, ${await addr3.getAddress()}`)
+        // console.log(`Owner addresses: ${await owner.getAddress()}`)
+
         CampusToken = await TokenFactory.deploy();
         await CampusToken.waitForDeployment()
 
