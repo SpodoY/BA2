@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/SpodoY/BA2#readme",
   "devDependencies": {
+    "@chainlink/hardhat-chainlink": "^0.0.4",
     "@nomicfoundation/hardhat-toolbox": "^4.0.0",
     "hardhat": "^2.20.1"
   },
