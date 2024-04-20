@@ -17,7 +17,7 @@ contract FHCWVendor {
     uint256 public tokenEthRatio = 1000;
 
     // The time between blocks in solidity for time calculations
-    uint8 private ethBlockInterval = 6;
+    uint8 private ethBlockInterval = 12;
 
     // Timed reward parameters
     uint64 private rewardBlocknumber;
