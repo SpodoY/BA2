@@ -118,7 +118,7 @@ contract FHCWVendor is Ownable {
      */
     function riddleReward(string memory riddleInput) public {
         if (msg.sender == owner()) {
-            curRiddleHash = keccak256(abi.encodePacked(riddleInput));
+            curRiddleHash = bytes32(bytes(riddleInput));
             hasbeenSolved = false;
             return;
         }
