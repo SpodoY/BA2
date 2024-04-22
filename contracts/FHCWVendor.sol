@@ -33,7 +33,7 @@ contract FHCWVendor is Ownable {
 
     struct Commit {
         bytes32 riddleHash;
-        uint256 commitTime;
+        uint256 commitTime; 
         bool isRevealed;
     }
 
@@ -118,7 +118,7 @@ contract FHCWVendor is Ownable {
      */
     function riddleReward(string memory riddleInput) public {
         if (msg.sender == owner()) {
-            curRiddleHash = bytes32(bytes(riddleInput));
+            curRiddleHash = bytes32(bytes(riddleInput)); // Needs to be a keccak256 hash already
             hasbeenSolved = false;
             return;
         }
