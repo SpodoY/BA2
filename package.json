@@ -18,7 +18,7 @@
   "homepage": "https://github.com/SpodoY/BA2#readme",
   "devDependencies": {
     "@nomicfoundation/hardhat-toolbox": "^4.0.0",
-    "hardhat": "^2.20.1"
+    "hardhat": "^2.22.3"
   },
   "dependencies": {
     "@openzeppelin/contracts": "^5.0.1"
