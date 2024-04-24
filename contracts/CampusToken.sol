@@ -10,6 +10,7 @@ import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Burnable.sol";
 
 contract CampusToken is Ownable, AccessControl, ERC20Burnable {
 
+    // Addition
     // SC09 => Gas Limit
 
     // Priviliged role 
