@@ -1,6 +1,13 @@
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
-require("@nomicfoundation/hardhat-toolbox");
+import "@chainlink/hardhat-chainlink";
+import 'dotenv/config'
+import "@nomicfoundation/hardhat-ignition-ethers";
+import "secp256k1"
+// require("@nomicfoundation/hardhat-toolbox");
+
+const { INFURA_API_KEY, MNEMONIC, REPORT_GAS, COINMAKERKET_API_KEY } = process.env
+
 
 const config: HardhatUserConfig = {
   solidity: {
@@ -18,9 +25,14 @@ const config: HardhatUserConfig = {
       gas: "auto",
       mining: {
         auto: true,
-        interval: 1000
+        // interval: 1000
       }
-    }
+    },
+    sepolia: {
+      url: `https://sepolia.infura.io/v3/${INFURA_API_KEY}`,
+      //@ts-ignore
+      accounts: [MNEMONIC],
+    },
   }
 };
 

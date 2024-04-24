@@ -6,11 +6,15 @@ import "./CampusToken.sol";
 import "hardhat/console.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
+import "./VRFv2Consumer.sol";
 
 contract FHCWVendor is Ownable {
 
     // Link to the campus token smart contract
     CampusToken public campusToken;
+
+    // Link to the VRFChainLink smart contract
+    VRFv2Consumer public chainlinkVRF;
 
     // How many tokens one gets for 1 ETH
     uint256 public tokenEthRatio = 1000;
@@ -45,7 +49,7 @@ contract FHCWVendor is Ownable {
         _;
     }
 
-    constructor(address _campusTokenAddress) payable Ownable(msg.sender) {
+    constructor(address _campusTokenAddress, address _chainlinkVRF) payable Ownable(msg.sender) {
 
         // Defines the first reward block-timestamp
         rewardBlocknumber = uint64(block.number + (2 minutes / ethBlockInterval));
@@ -55,6 +59,8 @@ contract FHCWVendor is Ownable {
 
         // Links to a CampusToken smart-contract
         campusToken = CampusToken(_campusTokenAddress);
+
+        chainlinkVRF = VRFv2Consumer(_chainlinkVRF);
     }
 
     receive() external payable {}
@@ -209,5 +215,12 @@ contract FHCWVendor is Ownable {
 
         (bool sent, ) = msg.sender.call{value: contractBalance}("");
         require(sent, "Couldn't transfer ETH to owner");
+    }
+
+    function callGenerateRandomWords() public {
+        uint requestID = chainlinkVRF.requestRandomWords();
+        uint lastRequest = chainlinkVRF.lastRequestId();
+        console.log(requestID, lastRequest);
+        chainlinkVRF.getRequestStatus(requestID);
     }
 }
