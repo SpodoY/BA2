@@ -105,7 +105,7 @@ contract FHCWVendor is Ownable {
         require(block.number >= nextRandomReward, "No reward available yet - Try again later");
 
         // Calculates random reward based on number
-        uint randomNumber = (block.number * 1234) % 100;
+        uint randomNumber = callGenerateRandomWords() % 100;
 
         // Transfers Tokens to sender
         campusToken.transfer(msg.sender, randomNumber);
@@ -217,10 +217,12 @@ contract FHCWVendor is Ownable {
         require(sent, "Couldn't transfer ETH to owner");
     }
 
-    function callGenerateRandomWords() public {
+    function callGenerateRandomWords() public returns (uint256 randomNum) {
+        uint256[] memory randWords;
         uint requestID = chainlinkVRF.requestRandomWords();
         uint lastRequest = chainlinkVRF.lastRequestId();
         console.log(requestID, lastRequest);
-        chainlinkVRF.getRequestStatus(requestID);
+        (,randWords) = chainlinkVRF.getRequestStatus(requestID);
+        return randWords[0];
     }
 }
