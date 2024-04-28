@@ -79,6 +79,7 @@ contract FHCWVendor is Ownable {
         // Check if current timestamp is greater than or equal to a specific timestamp
         console.log(block.number, rewardBlocknumber);
         require(block.number >= rewardBlocknumber, "Rewards not available yet");
+        require(receivers.length <= 50, "No more than 50 receivers allowed at a time");
 
         // Distribute rewards to all users
         for (uint i = 0; i < receivers.length; i++) {
