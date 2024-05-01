@@ -1,5 +1,6 @@
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
+import '@openzeppelin/hardhat-upgrades'
 require("@nomicfoundation/hardhat-toolbox");
 
 const config: HardhatUserConfig = {
@@ -18,7 +19,7 @@ const config: HardhatUserConfig = {
       gas: "auto",
       mining: {
         auto: true,
-        interval: 1000
+        // interval: 1000
       }
     }
   }
