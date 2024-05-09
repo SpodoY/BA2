@@ -188,20 +188,23 @@ contract FHCWVendor is Ownable {
      */
     function sellTokens(uint256 sellAmount) public {
         // Checks if requested amount is more than 0
-        require(sellAmount > 0, "You most sell more than zero tokens");
+        require(sellAmount > 0, "You must sell more than zero tokens");
 
         uint256 sellETHVal = (sellAmount / tokenEthRatio) * 10 ** 18;
+        console.log("sellEthVal", sellETHVal);
 
-        require(address(this).balance > sellETHVal, "You most sell more than zero tokens");
+        require(address(this).balance >= sellETHVal, "Contract has insufficient funding");
 
         // Checks if sender has enough tokens to sell requested amount
         uint256 senderBalance = campusToken.balanceOf(msg.sender);
         require(senderBalance >= sellAmount, "Seems like you haven't got enough tokens");
 
-        campusToken.transferFrom(msg.sender, address(this), sellAmount);
-
         (bool sent, ) = msg.sender.call{value: sellETHVal}("");
-        require(sent, "Couldn't send ETH to user");
+        require(sent, "Could not send ETH");
+
+        // console.log("Transferring Tokens");
+        // campusToken.transferFrom(msg.sender, address(this), sellAmount);
+
     }
 
     function withdraw() public onlyOwner() {

